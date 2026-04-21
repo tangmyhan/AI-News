@@ -1,0 +1,22 @@
+# Core
+feedparser
+requests
+beautifulsoup4
+python-dotenv
+
+# Processing / NLP
+langchain-openai
+langchain
+
+# API
+fastapi
+uvicorn
+pydantic
+
+# Worker / Queue
+celery
+redis
+
+# Database
+sqlalchemy
+psycopg2-binary

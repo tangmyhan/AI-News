@@ -115,13 +115,22 @@ class NLPProcessor:
             "format_instructions": self.relevance_parser.get_format_instructions()
         })
 
+        # Lấy toàn bộ metadata cần thiết để lưu trữ
+        metadata = {
+            "title": article_data.get("title"),
+            "url": article_data.get("url"),
+            "published": article_data.get("published"),
+            "categories": article_data.get("categories"),
+            "sapo": article_data.get("sapo"),
+            "content": article_data.get("content"),
+            "entities": article_data.get("entities"),
+            "topics": article_data.get("topics")
+        }
+
         # Skip nếu không liên quan
         if (not relevance["is_relevant"]) or (relevance["relevance_score"] < 0.5):
             return {
-                "metadata": {
-                    "url": article_data.get("url"),
-                    "categories": article_data.get("categories")
-                },
+                "metadata": metadata,
                 "relevance": relevance,
                 "analysis": None
             }
@@ -131,36 +140,44 @@ class NLPProcessor:
             "business_context": self.business_context,
             "title": article_data.get("title"),
             "sapo": article_data.get("sapo"),
-            "content": article_data.get("content")[:1500],  # truncate tránh tốn token
+            "content": (article_data.get("content") or "")[:1500],  # truncate tránh tốn token
             "format_instructions": self.analysis_parser.get_format_instructions()
         })
 
         return {
-            "metadata": {
-                "url": article_data.get("url"),
-                "categories": article_data.get("categories")
-            },
+            "metadata": metadata,
             "relevance": relevance,
             "analysis": analysis
         }
 
 def main():
     with open('article.json', 'r', encoding='utf-8') as f:
-        article_data = json.load(f)
+        articles = json.load(f)
+
+    if not articles:
+        print("Không có bài báo nào để xử lý.")
+        return
 
     processor = NLPProcessor()
-    print(f"--- Processing: {article_data['title']} ---")
+    processed_results = []
+
+    for article_data in articles:
+        print(f"\n--- Đang xử lý: {article_data.get('title')} ---")
+        
+        try:
+            result = processor.process(article_data)
+            processed_results.append(result)
+            
+            status = "LIÊN QUAN" if result['relevance']['is_relevant'] else "KHÔNG LIÊN QUAN"
+            print(f"Status: {status} | Score: {result['relevance']['relevance_score']}")
+
+        except Exception as e:
+            print(f"Lỗi khi xử lý bài '{article_data.get('title')}': {e}")
+
+    with open("processed_articles.json", "w", encoding="utf-8") as f:
+        json.dump(processed_results, f, ensure_ascii=False, indent=4)
     
-    try:
-        result = processor.process(article_data)
-
-        print(json.dumps(result, indent=4, ensure_ascii=False))
-
-        with open("processed_article.json", "w", encoding="utf-8") as f:
-            json.dump(result, f, ensure_ascii=False, indent=4)
-
-    except Exception as e:
-        print(f"Lỗi: {e}")
+    print(f"\n[HOÀN TẤT] Đã xử lý xong {len(processed_results)} bài báo.")
 
 if __name__ == "__main__":
     main()

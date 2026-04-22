@@ -89,9 +89,10 @@ class TuoiTreSpider:
             "topics": topics
         }
 
-    def save_to_json(self, data: Dict[str, Any], filename: str = "article.json"):
+    def save_to_json(self, data: Any, filename: str = "article.json"):
         """Save article data to JSON file."""
         with open(filename, "w", encoding="utf-8") as f:
+            import json
             json.dump(data, f, ensure_ascii=False, indent=4)
         print(f"Đã lưu kết quả vào file {filename}")
 
@@ -104,10 +105,26 @@ if __name__ == "__main__":
     print("Fetching RSS...")
     latest = spider.get_latest_urls()
     print(f"Found {len(latest)} articles in RSS.")
+    
+    categories_list_filter = ['kinh doanh', 'thế giới', 'chứng khoán', 'tin tức thị trường', 'phân tích - nhận định', 'doanh nghiệp niêm yết', 'hướng dẫn đầu tư', 'doanh nghiệp', 'cùng luận bàn']
+    saved_articles = []
     if latest:
-        print(f"Crawling first article: {latest[0]['title']}")
-        article_data = spider.crawl_article(latest[0]['url'])
-        print("\nCrawled Data:")
-        import json
-        print(json.dumps(article_data, ensure_ascii=False, indent=2))
-        spider.save_to_json(article_data)
+        for article in latest:
+            print(f"Crawling article: {article['title']}")
+            article_data = spider.crawl_article(article['url'])
+            if not article_data:
+                continue
+                
+            categories = article_data.get('categories', [])
+            categories_lower = [c.lower() for c in categories]
+            
+            # Kiểm tra xem có bất kỳ danh mục nào của bài báo nằm trong danh sách cần lọc không
+            if any(cat in categories_lower for cat in categories_list_filter):
+                saved_articles.append(article_data)
+                print(f"  -> Phù hợp! Đã thêm vào danh sách (Danh mục: {categories})")
+            else:
+                print(f"  -> Bỏ qua (Danh mục: {categories})")
+                
+        print(f"\nTổng số bài viết thu thập được: {len(saved_articles)}")
+        if saved_articles:
+            spider.save_to_json(saved_articles, "articles_filtered.json")

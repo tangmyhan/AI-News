@@ -8,7 +8,6 @@ logger = get_logger("Pipeline")
 def run():
     logger.info("Initializing spider and NLP service...")
     spider = TuoiTreSpider()
-    # It requires OPENAI_API_KEY from .env
     nlp = NLPService()
     
     logger.info("Fetching latest URLs from Tuoi Tre RSS...")
@@ -30,7 +29,7 @@ def run():
     logger.info("Content extracted successfully. Running NLP analysis...")
     analysis_result = nlp.analyze_article(
         title=crawled_data.get('title') or first_article['title'],
-        content=crawled_data['content'][:1500] # Limiting size for fast/cheap testing
+        content=crawled_data['content'][:1500]
     )
     
     logger.info("NLP Analysis completed. Formatting output...")

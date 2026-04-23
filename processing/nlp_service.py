@@ -1,20 +1,14 @@
 import json
-import os
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from dotenv import load_dotenv
+from shared.config import config
 
-load_dotenv()
-
-# Schema cho Database
-# Relevance Classification
 class RelevanceResult(BaseModel):
     is_relevant: bool = Field(description="Bài báo có liên quan đến business, ngành Logistics/Năng lượng hay không")
     relevance_score: float = Field(description="Độ liên quan từ 0.0 đến 1.0")
-    reason: str = Field(description="Giải thích ngắn gọn")
 
 class ArticleAnalysis(BaseModel):
     summary: List[str] = Field(description="Tóm tắt bài báo trong 3 gạch đầu dòng ngắn gọn")
@@ -24,7 +18,7 @@ class ArticleAnalysis(BaseModel):
 
 class NLPProcessor:
     def __init__(self):
-        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, api_key=os.getenv("OPENAI_API_KEY"))
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, api_key=config.OPENAI_API_KEY)
         
         # Parsers
         self.relevance_parser = JsonOutputParser(pydantic_object=RelevanceResult)
@@ -46,8 +40,7 @@ class NLPProcessor:
         template = """
         Bạn là chuyên gia đánh giá mức độ liên quan của tin tức với doanh nghiệp.
 
-        Ngữ cảnh:
-        {business_context}
+        Ngữ cảnh: {business_context}
 
         Bài báo được coi là LIÊN QUAN nếu có yếu tố:
         - Logistics / vận tải / xuất nhập khẩu
@@ -63,7 +56,6 @@ class NLPProcessor:
         Nhiệm vụ:
         1. Đánh giá is_relevant (true/false)
         2. Cho điểm relevance_score (từ 0.0 đến 1.0)
-        3. Giải thích ngắn gọn
 
         Tiêu đề: {title}
         Sapo: {sapo}
@@ -71,7 +63,6 @@ class NLPProcessor:
         {format_instructions}
         """
         prompt = ChatPromptTemplate.from_template(template)
-
         self.relevance_chain = (
             prompt
             | self.llm
@@ -83,8 +74,7 @@ class NLPProcessor:
         template = """
         Bạn là chuyên gia phân tích rủi ro cho Hội đồng quản trị.
 
-        Ngữ cảnh:
-        {business_context}
+        Ngữ cảnh: {business_context}
 
         Nhiệm vụ:
         1. Tóm tắt bài báo thành 3 ý ngắn
@@ -100,7 +90,6 @@ class NLPProcessor:
         {format_instructions}
         """
         prompt = ChatPromptTemplate.from_template(template)
-
         self.analysis_chain = (
             prompt
             | self.llm
@@ -115,7 +104,6 @@ class NLPProcessor:
             "format_instructions": self.relevance_parser.get_format_instructions()
         })
 
-        # Lấy toàn bộ metadata cần thiết để lưu trữ
         metadata = {
             "title": article_data.get("title"),
             "url": article_data.get("url"),
@@ -128,19 +116,15 @@ class NLPProcessor:
         }
 
         # Skip nếu không liên quan
-        if (not relevance["is_relevant"]) or (relevance["relevance_score"] < 0.5):
-            return {
-                "metadata": metadata,
-                "relevance": relevance,
-                "analysis": None
-            }
+        if (not relevance.get("is_relevant")) or (relevance.get("relevance_score") < 0.5):
+            return None
         
         # analysis
         analysis = self.analysis_chain.invoke({
             "business_context": self.business_context,
             "title": article_data.get("title"),
             "sapo": article_data.get("sapo"),
-            "content": (article_data.get("content") or "")[:1500],  # truncate tránh tốn token
+            "content": (article_data.get("content") or "")[:1500], 
             "format_instructions": self.analysis_parser.get_format_instructions()
         })
 
@@ -162,14 +146,16 @@ def main():
     processed_results = []
 
     for article_data in articles:
-        print(f"\n--- Đang xử lý: {article_data.get('title')} ---")
+        print(f"\nĐang xử lý: {article_data.get('title')}")
         
         try:
             result = processor.process(article_data)
+            if result is None:
+                print("Status: Bài báo không liên quan -> Bỏ qua")
+                continue
+                
             processed_results.append(result)
-            
-            status = "LIÊN QUAN" if result['relevance']['is_relevant'] else "KHÔNG LIÊN QUAN"
-            print(f"Status: {status} | Score: {result['relevance']['relevance_score']}")
+            print("Status: Bài báo liên quan -> Đã xử lý")
 
         except Exception as e:
             print(f"Lỗi khi xử lý bài '{article_data.get('title')}': {e}")
@@ -177,7 +163,7 @@ def main():
     with open("processed_articles.json", "w", encoding="utf-8") as f:
         json.dump(processed_results, f, ensure_ascii=False, indent=4)
     
-    print(f"\n[HOÀN TẤT] Đã xử lý xong {len(processed_results)} bài báo.")
+    print(f"\nĐã xử lý xong {len(processed_results)} bài báo.")
 
 if __name__ == "__main__":
     main()

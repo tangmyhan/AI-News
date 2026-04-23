@@ -89,7 +89,7 @@ class TuoiTreSpider:
     def save_to_json(self, data: Any, filename: str = "articles_filtered.json"):
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-        print(f"\n[HỆ THỐNG] Đã lưu {len(data)} bài viết vào {filename}")
+        print(f"\nĐã lưu {len(data)} bài viết vào {filename}")
 
 if __name__ == "__main__":
     spider = TuoiTreSpider()

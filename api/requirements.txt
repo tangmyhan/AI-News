@@ -3,3 +3,6 @@ uvicorn
 pydantic
 celery
 redis
+sqlalchemy
+psycopg2-binary
+elasticsearch

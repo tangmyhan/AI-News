@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -33,10 +34,14 @@ def run_ingestion():
         url = article_info['url']
         logger.info(f"[{idx+1}/{len(new_articles)}] Đang crawl raw HTML: {url}")
         
+        url_start_time = time.time()
         crawled_data = spider.crawl_article(article_info)
         
         if crawled_data and crawled_data.get('content'):
-            logger.info(f"Crawl dữ liệu thành công. Đang đẩy vào Celery Queue...")
+            crawl_time = time.time() - url_start_time
+            logger.info(f"Crawl dữ liệu thành công mất {crawl_time:.2f}s. Đang đẩy vào Celery Queue...")
+            
+            crawled_data['pipeline_start_time'] = url_start_time
             
             # đẩy dữ liệu thô vào Queue
             process_article.delay(crawled_data)

@@ -12,8 +12,8 @@ class ESClient:
         self.es = Elasticsearch([es_url])
         self.index_name = "articles_index"
 
+    # Tạo index nếu chưa có, dùng để config mapping cho tìm kiếm
     def create_index_if_not_exists(self):
-        """Tạo index nếu chưa có, dùng để config mapping cho tìm kiếm"""
         if not self.es.indices.exists(index=self.index_name):
             mapping = {
                 "mappings": {
@@ -33,8 +33,8 @@ class ESClient:
             self.es.indices.create(index=self.index_name, body=mapping)
             print(f"[Elasticsearch] Đã tạo index: {self.index_name}")
 
+    # Index một bài viết vào Elasticsearch để search
     def index_article(self, article_id: str, document: dict):
-        """Lưu (Index) một bài viết vào Elasticsearch để Full-text/Vector Search"""
         try:
             self.es.index(index=self.index_name, id=article_id, document=document)
             return True

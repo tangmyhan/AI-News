@@ -1,5 +1,10 @@
 import json
 import os
+import sys
+
+# Thêm thư mục gốc vào sys.path để có thể import các module như shared
+sys.path.append(r"D:\AI-News\AI-News-project\AI-News")
+
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -8,9 +13,6 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from shared.config import config
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class RelevanceResult(BaseModel):
     is_relevant: bool = Field(description="Bài báo có liên quan đến business, ngành Logistics/Năng lượng hay không")
@@ -75,7 +77,7 @@ class NLPProcessor:
             | self.relevance_parser
         )
 
-    # 4. analysis chain
+    # analysis chain
     def _build_analysis_chain(self):
         template = """
         Bạn là chuyên gia phân tích rủi ro cho Hội đồng quản trị.
@@ -141,7 +143,7 @@ class NLPProcessor:
         }
 
 def main():
-    with open('article.json', 'r', encoding='utf-8') as f:
+    with open('articles_filtered_v1.json', 'r', encoding='utf-8') as f:
         articles = json.load(f)
 
     if not articles:
@@ -157,11 +159,12 @@ def main():
         try:
             result = processor.process(article_data)
             if result is None:
-                print("Status: Bài báo không liên quan -> Bỏ qua")
+                print("Bỏ qua: Bài báo không liên quan")
                 continue
                 
             processed_results.append(result)
-            print("Status: Bài báo liên quan -> Đã xử lý")
+            print("Bài báo liên quan")
+            print(result)
 
         except Exception as e:
             print(f"Lỗi khi xử lý bài '{article_data.get('title')}': {e}")

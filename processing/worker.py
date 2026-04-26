@@ -3,7 +3,6 @@ from processing.nlp_service import NLPProcessor
 from shared.logger import get_logger
 from dotenv import load_dotenv
 
-# Load env in worker environment
 load_dotenv()
 
 logger = get_logger("CeleryWorker")

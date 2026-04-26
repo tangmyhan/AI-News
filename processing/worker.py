@@ -29,14 +29,19 @@ def process_article(self, article_data: dict):
     try:
         result = nlp_processor.process(article_data)
         
+        if result is None:
+            logger.info(f"Article is not relevant to business. Skipped: {url}")
+            return {
+                "status": "skipped",
+                "reason": "not_relevant",
+                "url": url
+            }
+            
         # TODO: LƯU DB POSTGRES Ở ĐÂY
         
         relevance = result.get("relevance", {})
-        if relevance.get("is_relevant"):
-            analysis = result.get("analysis", {}) or {}
-            logger.info(f"Successfully processed relevant article. Impact: {analysis.get('impact_label')}")
-        else:
-            logger.info(f"Article is not relevant. Score: {relevance.get('relevance_score')}")
+        analysis = result.get("analysis", {}) or {}
+        logger.info(f"Successfully processed relevant article. Impact: {analysis.get('impact_label')}")
         
         return {
             "status": "success",

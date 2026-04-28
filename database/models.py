@@ -1,5 +1,6 @@
-from sqlalchemy import Column, String, Float, Boolean, JSON, DateTime, Text
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, String, Float, Boolean, JSON, DateTime, Text, Index, func, text
+import sqlalchemy.dialects.postgresql
+from sqlalchemy.orm import declarative_base
 from datetime import datetime
 import uuid
 
@@ -34,3 +35,17 @@ class Article(Base):
     # Thời gian tạo và cập nhật bản ghi
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Indexes
+    __table_args__ = (
+        # GIN Index: Full-Text Search
+        Index(
+            'idx_fts_articles',
+            text("to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(sapo, '') || ' ' || coalesce(content, ''))"),
+            postgresql_using='gin'
+        ),
+        # Index cho sắp xếp theo thời gian mới nhất
+        Index('idx_published_date', published_date.desc()),
+        # Index cho các filter nghiệp vụ
+        Index('idx_impact_label', impact_label)
+    )

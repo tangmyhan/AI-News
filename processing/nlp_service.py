@@ -75,7 +75,7 @@ class NLPProcessor:
             | self.relevance_parser
         )
 
-    # 4. analysis chain
+    # analysis chain
     def _build_analysis_chain(self):
         template = """
         Bạn là chuyên gia phân tích rủi ro cho Hội đồng quản trị.

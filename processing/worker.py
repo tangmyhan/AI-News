@@ -1,3 +1,11 @@
+import sys
+import os
+
+# Add the project root to sys.path for standalone execution
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from shared.celery_app import celery_app
 from processing.nlp_service import NLPProcessor
 from shared.logger import get_logger
@@ -6,15 +14,13 @@ from database.db_client import db_client
 from database.models import Article
 from sqlalchemy.dialects.postgresql import insert
 
-# Load env in worker environment
 load_dotenv()
 
 logger = get_logger("CeleryWorker")
 
-# Initialize NLP service
 nlp_processor = None
 
-# nhận bài viết thô từ queue, xử lý qua NLP, và lưu vào PostgreSQL.
+# nhận bài viết từ queue, xử lý qua NLP, và lưu vào PostgreSQL.
 @celery_app.task(name="processing.worker.process_article", bind=True, max_retries=3)
 def process_article(self, article_data: dict):
     global nlp_processor
@@ -37,7 +43,7 @@ def process_article(self, article_data: dict):
             relevance = result.get("relevance", {})
             analysis = result.get("analysis", {}) or {}
 
-        # Đóng gói payload cho DB
+        # payload DB
         insert_stmt = insert(Article).values(
             title=article_data.get('title', ''),
             url=url,

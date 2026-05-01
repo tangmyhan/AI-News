@@ -38,14 +38,11 @@ class Article(Base):
 
     # Indexes
     __table_args__ = (
-        # GIN Index: Full-Text Search
         Index(
             'idx_fts_articles',
             text("to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(sapo, '') || ' ' || coalesce(content, ''))"),
             postgresql_using='gin'
         ),
-        # Index cho sắp xếp theo thời gian mới nhất
         Index('idx_published_date', published_date.desc()),
-        # Index cho các filter nghiệp vụ
         Index('idx_impact_label', impact_label)
     )

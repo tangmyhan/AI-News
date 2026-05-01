@@ -212,6 +212,19 @@ def get_news_detail(article_id: str, db: Session = Depends(get_db)):
         "summary": article.summary,
         "content": article.content
     }
+    
+    for label, count in impact_counts:
+        if label:
+            if label.lower() == "tích cực":
+                stats["positive"] = count
+            elif label.lower() == "tiêu cực":
+                stats["negative"] = count
+            elif label.lower() == "trung lập":
+                stats["neutral"] = count
+                
+    stats["percent_negative"] = round((stats["negative"] / total_relevant * 100) if total_relevant > 0 else 0, 1)
+            
+    return stats
 
 if __name__ == "__main__":
     import uvicorn

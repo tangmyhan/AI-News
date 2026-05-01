@@ -18,6 +18,6 @@ celery_app.conf.update(
 celery_app.conf.beat_schedule = {
     'crawl-news-every-1-hour': {
         'task': 'ingestion.run_crawler',
-        'schedule': 3600.0, # 3600 giây = 1 giờ
+        'schedule': 60.0, # 3600 giây = 1 giờ
     },
 }

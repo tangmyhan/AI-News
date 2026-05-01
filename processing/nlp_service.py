@@ -32,9 +32,9 @@ class NLPProcessor:
 
         # Business Context
         self.business_context = (
-            "Doanh nghiệp là một tập đoàn chuyên về Logistics và Đầu tư hạ tầng năng lượng tại Việt Nam, quan tâm sát sao đến "
+            "Doanh nghiệp là một tập đoàn chuyên về kinh doanh, xuất nhập khẩu và phân phối xăng dầu, khí đốt, nhiên liệu, Logistics và Đầu tư hạ tầng năng lượng tại Việt Nam, quan tâm sát sao đến "
             "biến động chính trị thế giới, giá năng lượng và các chính sách ngoại giao "
-            "có thể ảnh hưởng đến chuỗi cung ứng toàn cầu."
+            "có thể ảnh hưởng đến chuỗi cung ứng toàn cầu và hoạt động kinh doanh xăng dầu."
         )
 
         # Build chains

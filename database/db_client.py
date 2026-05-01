@@ -9,7 +9,7 @@ class DatabaseClient:
         Base.metadata.create_all(self.engine)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
     
-    # Trả về một session để giao tiếp với DB
+    # session để giao tiếp với DB
     def get_session(self):
         return self.SessionLocal()
 

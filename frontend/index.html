@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-News Business Impact Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-mode">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="topbar glass-panel">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <h1>AI-News <span>Business Impact</span></h1>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="btn-icon" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Overview Stats Section -->
+            <section class="stats-grid">
+                <div class="stat-card glass-panel">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Articles</span>
+                        <div class="stat-icon bg-blue"><i class="fa-regular fa-newspaper"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-total">-</div>
+                    <div class="stat-subtitle">Processed recently</div>
+                </div>
+                
+                <div class="stat-card glass-panel">
+                    <div class="stat-header">
+                        <span class="stat-title">Relevant to Business</span>
+                        <div class="stat-icon bg-indigo"><i class="fa-solid fa-bullseye"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-relevant-pct">-</div>
+                    <div class="stat-subtitle" id="stat-relevant-count">- articles</div>
+                </div>
+
+                <div class="stat-card glass-panel">
+                    <div class="stat-header">
+                        <span class="stat-title">Negative Impact</span>
+                        <div class="stat-icon bg-rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-negative-pct">-</div>
+                    <div class="stat-subtitle">Requires attention</div>
+                </div>
+
+                <div class="stat-card glass-panel chart-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Impact Distribution</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="impactChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Workspace -->
+            <div class="workspace">
+                <!-- Sidebar Filters -->
+                <aside class="sidebar glass-panel">
+                    <div class="sidebar-header">
+                        <i class="fa-solid fa-filter"></i>
+                        <h2>Filters & Search</h2>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="search-input" class="form-control" placeholder="Search news...">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="impact-filter">Impact Type</label>
+                        <select id="impact-filter" class="form-control">
+                            <option value="All">All Impacts</option>
+                            <option value="Positive">Positive</option>
+                            <option value="Negative">Negative</option>
+                            <option value="Neutral">Neutral</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="relevance-filter">Min Relevance (0-1)</label>
+                        <input type="number" id="relevance-filter" class="form-control" min="0" max="1" step="0.1" value="0">
+                    </div>
+                </aside>
+
+                <!-- Article Feed -->
+                <section class="feed-section glass-panel">
+                    <div class="feed-header">
+                        <h2>Recent News</h2>
+                        <span class="badge" id="result-count">0 results</span>
+                    </div>
+                    <div class="feed-list" id="article-list">
+                        <div class="loading-state">Loading data...</div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Article Details -->
+    <div id="article-modal" class="modal-overlay">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-tags">
+                        <span id="modal-source" class="tag tag-source">Source</span>
+                        <span id="modal-impact" class="tag tag-impact">Impact</span>
+                    </div>
+                    <h2 id="modal-title">Article Title</h2>
+                </div>
+                <button id="close-modal" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-summary-section" class="content-section hidden">
+                    <h3><i class="fa-solid fa-list-check text-blue"></i> Key Takeaways</h3>
+                    <ul id="modal-summary-list"></ul>
+                </div>
+                
+                <div id="modal-reason-section" class="content-section box-highlight hidden">
+                    <h3>Business Impact Analysis</h3>
+                    <p id="modal-reason-text"></p>
+                </div>
+
+                <div class="content-section">
+                    <span class="meta-label">Categories</span>
+                    <div id="modal-categories" class="tags-container"></div>
+                </div>
+                
+                <div class="content-section">
+                    <span class="meta-label">Entities</span>
+                    <div id="modal-entities" class="tags-container"></div>
+                </div>
+                
+                <div class="content-section">
+                    <span class="meta-label">Topics</span>
+                    <div id="modal-topics" class="tags-container"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="modal-link" href="#" target="_blank" class="btn-primary">
+                    Read Full Article <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

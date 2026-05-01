@@ -6,10 +6,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ingestion.tuoitre_spider import TuoiTreSpider
 from ingestion.filter import DeduplicationFilter
 from processing.worker import process_article
+from shared.celery_app import celery_app
 from shared.logger import get_logger
 
 logger = get_logger("Producer")
 
+@celery_app.task(name="ingestion.run_crawler")
 def run_ingestion():
     logger.info("Khởi tạo Spider và Filter...")
     spider = TuoiTreSpider()
